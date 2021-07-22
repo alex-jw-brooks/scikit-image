@@ -175,3 +175,19 @@ def test_level_default():
     contours = find_contours(image)  # use default level
     # many contours should be found
     assert len(contours) > 1
+
+
+def test_converging_tails():
+    # test array where interpolated coordinates result in 2 segments going into one point,
+    # and one segment coming out of that point. This situation may arise if we get unlucky
+    # with saddle points, because saddle points generate two segments per 2x2 cell in marching
+    # squares.
+    image = np.array([
+        [1, 0, 1, 2],
+        [2, 0, 2, 0],
+        [1, 2, 2, 1]
+    ])
+    # We expect that this doesn't throw a KeyError during tail cleanup, and that each contour
+    # is continued as long as possible, even if they're not necessarily disjoint.
+    contours = find_contours(image)
+    assert len(contours) == 2
